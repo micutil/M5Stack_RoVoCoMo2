@@ -58,7 +58,8 @@ M5Stackをコンピュータと繋いで、プログラムの転送など通信�
 ### ④ M5Burner_Micで、M5StackにSD-Menuをインストールする
 "M5Burner\_Mic"というプログラムでSD-MenuをM5Stackにインストールします。すでにSD-MenuまたはLovyanLauncherをインストールしてある場合はこのステップは必要ありません。
 
-1. [M5Burner_Mic](https://github.com/micutil/M5Burner_Mic) のページから「Download [here](http://micutil.com/download/M5Burner_Mic.zip)」の所でM5Burner\_Micをダウンロードし、解凍して下さい。M5Burner\_Micフォルダはお好みの場所に入れて下さい。
+1. [M5Burner_Mic](https://github.com/micutil/M5Burner_Mic) のページから「Download [here](http://micutil.com/download/M5Burner_Mic.zip)」の所でM5Burner\_Micをダウンロードし、解凍して下さい。（M5Burner\_Micフォルダはお好みの場所に入れて下さい。）
+2. firmwaresフォルダの中のtobozoフォルダの中にある**menu.bin**をM5Stackに入れるmicroSDにコピーします。
 2. M5Stackに付いてきたUSB-CケーブルでパソコンとM5Stackを繋げて下さい。
 3. M5Burner\_Micをダブルクリックして起動します。
 4. USBシリアルポートをM5Stackのポートに設定します。
@@ -95,6 +96,7 @@ M5Stackをコンピュータと繋いで、プログラムの転送など通信�
 - 複数個のFlashAirの電波があった場合、いちばん電波の強いFlashAirに接続する仕様になっていますので、起動時に接続させたいFlashAirの近くで起動させて下さい。
 
 ## 履歴
+	ver 1.8: 2019/ 4/23 : CSVファイル改良（容量軽減）
 	ver 1.7: 2019/ 4/14 : ロビ２のココロ対応
 	ver 1.6: 2019/ 3/28 : 認識語リスト外部ファイル化
 	ver 1.5: 2019/ 3/ 8 : ロビライドの操作性ほか
