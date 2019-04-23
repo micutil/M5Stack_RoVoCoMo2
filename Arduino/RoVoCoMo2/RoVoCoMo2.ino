@@ -2,6 +2,7 @@
    RoVoCoMo 2 : Robi Voice Controller by Micono
    for M5Stack
 
+   ver 1.8: 2019/ 4/23 : CSVファイル改良（容量軽減）
    ver 1.7: 2019/ 4/14 : ロビ２のココロ対応
    ver 1.6: 2019/ 3/28 : 認識語リスト外部ファイル化
    ver 1.5: 2019/ 3/ 8 : ロビライドの操作性ほか
@@ -234,7 +235,7 @@ int nextData[MAX_ID];
 int nextOrder[MAX_NEXT][MAX_ORDER];
 int maxOrder[MAX_NEXT];
 unsigned int continueOrder[MAX_NEXT];
-//String voiceFolder = "voice/Ninshiki";
+String voiceFolder;
 int openingVoice = 87;
 /*
 String voiceData[] = {
@@ -451,8 +452,13 @@ void playQboSoundNum(int id) {
   fp.replace("NF000", iddecs);
 */
 //  String fp = "/" + voiceFolder + "/" + voiceFile[id] + ".wav"; 
-  String fp = "/voice/" + voiceFile[id] + ".wav"; 
-  //Serial.print("File name="); Serial.println(iddecs);
+  String fp;
+  if (voiceFile[id].indexOf('/') == -1)
+    fp = "/voice/" + voiceFolder + voiceFile[id] + ".wav";
+  else
+    fp = "/voice/" + voiceFile[id] + ".wav";
+ 
+   //Serial.print("File name="); Serial.println(iddecs);
   Serial.print("Voice Path="); Serial.println(fp);
   playVoice(fp);
 }
@@ -837,6 +843,7 @@ void readVoiceData(fs::FS &fs, const char * path) {
     else
       v = characterID[i];
   }
+  voiceFolder = voiceFile[0].substring(0, voiceFile[0].indexOf('/') + 1);
 }
 
 void readCharacterData(fs::FS &fs, const char * path) {
@@ -1172,7 +1179,7 @@ void setup()
   //Robi2 BLE Voice Controller
   fontDump(20, 5, "RoVoCoMo2", 24, TFT_CYAN);
   fontDump(20, 30, "BLE & FlashAir", 16);
-  fontDump(20, 47, "by Micono v1.7", 12, TFT_GREEN);
+  fontDump(20, 47, "by Micono v1.8", 12, TFT_GREEN);
 #endif //useJPFONT
 
 #endif //isM5Stack
