@@ -105,7 +105,13 @@ M5Stackをコンピュータと繋いで、プログラムの転送など通信�
 	ver 1.2: 2019/ 1/27
 	ver 1.1: 2019/ 1/25
 	ver 1.0: 2019/ 1/ 6
-   
+
+#### 更新方法
+- RoVoCoMo2.bin, ROBI1フォルダ, および,ROBI2フォルダをmicroSDに入れる
+- ロビ２（ロビ１兼用）を使う場合は、ROBI2フォルダの中のNinshiki.csvを、ロビ１をを使う場合は、ROBI1フォルダの中のNinshiki.csvをmicroSDのルートにコピーします。
+- Aボタン+リセットで、一旦メニュープログラムに戻ります。
+- メニュープログラムから、RoVoCoMo2を選択して起動して下さい。
+
 ## 免責およびライセンス
 
 CC 4.0 BY-NC-ND https://github.com/micutil/M5Stack_RSTester
