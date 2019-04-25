@@ -59,7 +59,6 @@ M5Stackをコンピュータと繋いで、プログラムの転送など通信�
 "M5Burner\_Mic"というプログラムでSD-MenuをM5Stackにインストールします。すでにSD-MenuまたはLovyanLauncherをインストールしてある場合はこのステップは必要ありません。
 
 1. [M5Burner_Mic](https://github.com/micutil/M5Burner_Mic) のページから「Download [here](http://micutil.com/download/M5Burner_Mic.zip)」の所でM5Burner\_Micをダウンロードし、解凍して下さい。（M5Burner\_Micフォルダはお好みの場所に入れて下さい。）
-2. firmwaresフォルダの中のtobozoフォルダの中にある**menu.bin**をM5Stackに入れるmicroSDにコピーします。
 2. M5Stackに付いてきたUSB-CケーブルでパソコンとM5Stackを繋げて下さい。
 3. M5Burner\_Micをダブルクリックして起動します。
 4. USBシリアルポートをM5Stackのポートに設定します。
@@ -69,6 +68,7 @@ M5Stackをコンピュータと繋いで、プログラムの転送など通信�
 6. 「**Start**」ボタンをクリックすると、プログラムの転送が開始します。
 7. プログラムの転送が終わるとM5Stackがリセットされ、インストールした**SD-Menu**が起動します。
 8. M5StackのCボタン（右）を何回か押して、RoVoCoMo2を選択し、Bボタン（中央）のボタンを押すと、RoVoCoMo2が起動します。操作方法は後で説明します。
+9. microSDにmenu.binが入ってない場合は、M5Burner_Micのfirmwaresフォルダの中のtobozoフォルダの中に**menu.bin**があるので、それをmicroSDにコピーして下さい。
 9. 再度、メニューを表示する場合は、Aボタン（左）を押しながらリセットボタン（左上側面）を押すとSD-Menuが起動します。
 
 
