@@ -1,7 +1,11 @@
 /*******************************************************************
    RoVoCoMo 2 : Robi Voice Controller by Micono
    for M5Stack
+   
+   https://github.com/micutil/M5Stack_RoVoCoMo2
 
+   ver 1.9: 2019/ 4/30 : FlashAirを使った場合の落ちる不具合を修正
+                         Ninshikiフォルダが入ってない場合音声がでない不具合を修正
    ver 1.8: 2019/ 4/23 : CSVファイル改良（容量軽減）
    ver 1.7: 2019/ 4/14 : ロビ２のココロ対応
    ver 1.6: 2019/ 3/28 : 認識語リスト外部ファイル化
@@ -229,13 +233,14 @@ int voiceMax; //登録数
 #define MAX_NEXT 16
 
 String voiceData[MAX_ID];
-String voiceFile[MAX_ID];
+//String voiceFile[MAX_ID];
+int voiceFile[MAX_ID];
 int ninshikiID[MAX_ID];
 int nextData[MAX_ID];
 int nextOrder[MAX_NEXT][MAX_ORDER];
 int maxOrder[MAX_NEXT];
 unsigned int continueOrder[MAX_NEXT];
-String voiceFolder;
+//String voiceFolder;
 int openingVoice = 87;
 /*
 String voiceData[] = {
@@ -453,11 +458,28 @@ void playQboSoundNum(int id) {
 */
 //  String fp = "/" + voiceFolder + "/" + voiceFile[id] + ".wav"; 
   String fp;
+/*  
   if (voiceFile[id].indexOf('/') == -1)
     fp = "/voice/" + voiceFolder + voiceFile[id] + ".wav";
   else
     fp = "/voice/" + voiceFile[id] + ".wav";
- 
+*/
+   char file_name[32];
+   if (voiceFile[id] > 2000)
+     sprintf(file_name, "NF/NF_N%02d", voiceFile[id] - 2000);
+   else if (voiceFile[id] > 1500)
+     sprintf(file_name, "NF/NF%02d-2", voiceFile[id] - 1500);
+   else if (voiceFile[id] > 1000)
+     sprintf(file_name, "NF/NF%02d", voiceFile[id] - 1000);
+    else if (voiceFile[id] > 500)
+     sprintf(file_name, "Ninshiki/NF%02d-2", voiceFile[id] - 500);
+   else
+     sprintf(file_name, "Ninshiki/NF%02d", voiceFile[id]);
+
+   fp = "/voice/";
+   fp += file_name;
+   fp += ".wav";
+    
    //Serial.print("File name="); Serial.println(iddecs);
   Serial.print("Voice Path="); Serial.println(fp);
   playVoice(fp);
@@ -787,7 +809,8 @@ void readVoiceData(fs::FS &fs, const char * path) {
        }
         else if (col == 2)
        {
-          voiceFile[i] = String(buf);
+ //         voiceFile[i] = String(buf);
+          voiceFile[i] = atoi(buf);
        }
        else if (col == 3)
        {
@@ -843,7 +866,7 @@ void readVoiceData(fs::FS &fs, const char * path) {
     else
       v = characterID[i];
   }
-  voiceFolder = voiceFile[0].substring(0, voiceFile[0].indexOf('/') + 1);
+//  voiceFolder = voiceFile[0].substring(0, voiceFile[0].indexOf('/') + 1);
 }
 
 void readCharacterData(fs::FS &fs, const char * path) {
@@ -1112,7 +1135,9 @@ void setup()
 
 #ifdef useAUDIO
   #ifdef hasSD
-    enableAudio = SD.exists("/voice/Ninshiki/NF26.wav");
+//  if ((enableAudio = SD.exists("/voice/Ninshiki/NF26.wav")) == false)
+//    enableAudio = SD.exists("/voice/NF/NF26.wav");
+  enableAudio = SD.exists("/voice/Ninshiki") || SD.exists("/voice/NF");
   #endif
   if(M5.BtnC.isPressed()) enableAudio=false;
 #endif
@@ -1179,7 +1204,7 @@ void setup()
   //Robi2 BLE Voice Controller
   fontDump(20, 5, "RoVoCoMo2", 24, TFT_CYAN);
   fontDump(20, 30, "BLE & FlashAir", 16);
-  fontDump(20, 47, "by Micono v1.8", 12, TFT_GREEN);
+  fontDump(20, 47, "by Micono v1.9", 12, TFT_GREEN);
 #endif //useJPFONT
 
 #endif //isM5Stack
@@ -1208,7 +1233,7 @@ void setup()
 
 #ifdef useGo10on //50音検索
 
-    #ifdef useSPIFFS
+   #ifdef useSPIFFS
       readVoiceData(qbFSD,"/Ninshiki.csv");
       readCharacterData(qbFSD,"/Character.csv");
    #else
