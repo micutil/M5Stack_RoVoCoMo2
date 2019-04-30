@@ -1,4 +1,4 @@
-# M5Stack_RoVoCoMo2
+# M5Stack_RoVoCoMo2 (v1.9)
 ロビ１、ロビ２をWi-Fi（FlashAirを使用）またはBLE (Bluetooth Low Enagy)により無線コントロールするためのM5Stackのプログラムです。RoVoCoMo2という名前は「Robi Voice Controller by Micono」の略で、ブラウザ版の[RoVoCoMo](http://micono.cocolog-nifty.com/blog/2017/07/rovocomo-v05-81.html)のM5Stack版をRoVoCoMo2としています。
 
 どのようなプログラムなのかは、以下の像をクリックすると操作中の動画をで観ることができます（**この動画で使っているRoVoCoMo2は旧バージョンであり最新バージョンのものとは異なります**）。<br>
@@ -96,6 +96,8 @@ M5Stackをコンピュータと繋いで、プログラムの転送など通信�
 - 複数個のFlashAirの電波があった場合、いちばん電波の強いFlashAirに接続する仕様になっていますので、起動時に接続させたいFlashAirの近くで起動させて下さい。
 
 ## 履歴
+	ver 1.9: 2019/ 4/30 : FlashAirを使った場合の落ちる不具合を修正
+	                      Ninshikiフォルダが入ってない場合、音声がでない不具合を修正
 	ver 1.8: 2019/ 4/23 : CSVファイル改良（容量軽減）
 	ver 1.7: 2019/ 4/14 : ロビ２のココロ対応
 	ver 1.6: 2019/ 3/28 : 認識語リスト外部ファイル化
