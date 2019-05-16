@@ -4,6 +4,7 @@
    
    https://github.com/micutil/M5Stack_RoVoCoMo2
 
+   ver 2.0: 2019/ 5/17 : Odroid-GOに対応 / Faces操作の不具合を修正
    ver 1.9: 2019/ 4/30 : FlashAirを使った場合の落ちる不具合を修正
                          Ninshikiフォルダが入ってない場合音声がでない不具合を修正
    ver 1.8: 2019/ 4/23 : CSVファイル改良（容量軽減）
@@ -21,6 +22,16 @@
       robi.micutil.com
 
  *******************************************************************/
+
+/*******************************************************************
+    Chimera library of M5Stack for Odroid-GO
+    If you built RoVoCoMo2 for Odroid-GO, you need replace M5Stack library to the chimera.
+    You can get the library from below,
+    
+    tobozo/ESP32-Chimera-Core
+    https://github.com/tobozo/ESP32-Chimera-Core
+    
+*/
 
 /*******************************************************************
    refer to PlayMP3FromSDToDAC for play mp3 file in microSD
@@ -64,8 +75,10 @@
   #define useGo10on //50音操作　by CRAFT OYAJI
   #define useAUDIO 
   #define useWiFi
-  #define useFACES
   #define hasSD
+  #ifndef ARDUINO_ODROID_ESP32
+    #define useFACES
+  #endif
 #endif
 
 #ifdef isESP32 || isESP32_OLED || isESP_OLED_SD
@@ -809,8 +822,9 @@ void readVoiceData(fs::FS &fs, const char * path) {
        }
         else if (col == 2)
        {
- //         voiceFile[i] = String(buf);
+ //       voiceFile[i] = String(buf);
           voiceFile[i] = atoi(buf);
+          //Serial.println(buf);
        }
        else if (col == 3)
        {
@@ -1106,7 +1120,11 @@ if(enableFlashAir) {
 }
 
 /*****************************************************
+ *****************************************************
+ *****************************************************
    setup
+ *****************************************************
+ *****************************************************
  *****************************************************/
 
 void setup()
@@ -1121,7 +1139,7 @@ void setup()
   }
 #endif
 
-  Serial.begin(115200);
+  //Serial.begin(115200);
   M5.Lcd.setTextSize(2);
 
   //Start SPIFFS or microSD
@@ -1135,11 +1153,16 @@ void setup()
 
 #ifdef useAUDIO
   #ifdef hasSD
-//  if ((enableAudio = SD.exists("/voice/Ninshiki/NF26.wav")) == false)
-//    enableAudio = SD.exists("/voice/NF/NF26.wav");
+  //if ((enableAudio = SD.exists("/voice/Ninshiki/NF26.wav")) == false)
+  //  enableAudio = SD.exists("/voice/NF/NF26.wav");
   enableAudio = SD.exists("/voice/Ninshiki") || SD.exists("/voice/NF");
   #endif
+  M5.update();
+  #ifdef ARDUINO_ODROID_ESP32
+  if(M5.BtnVolume.isPressed()) enableAudio=false;
+  #else
   if(M5.BtnC.isPressed()) enableAudio=false;
+  #endif
 #endif
 
 #ifdef useWebServer
@@ -1204,7 +1227,7 @@ void setup()
   //Robi2 BLE Voice Controller
   fontDump(20, 5, "RoVoCoMo2", 24, TFT_CYAN);
   fontDump(20, 30, "BLE & FlashAir", 16);
-  fontDump(20, 47, "by Micono v1.9", 12, TFT_GREEN);
+  fontDump(20, 47, "by Micono v2.0", 12, TFT_GREEN);
 #endif //useJPFONT
 
 #endif //isM5Stack
@@ -1252,7 +1275,7 @@ void setup()
   #ifdef useSPIFFS
     //setPickupVoiceList(qbFSD,"/PickupVoice.bin");
   #else
-    setPickupVoiceList(SD,"/PickupVoice.bin");
+    //setPickupVoiceList(SD,"/PickupVoice.bin");
   #endif
 
 #endif //useGo10on 終わり
@@ -1297,8 +1320,24 @@ void setup()
 }
 
 /*****************************************************
-   Loop
+ *****************************************************
+
+  Loop
+
+ *****************************************************
  *****************************************************/
+unsigned long noOpr=millis();
+
+int joyXY=0;
+int joyDir=1;
+int facesID=0;
+void setJoyDir() {
+  switch(joyXY) {
+    case 0: joyDir=0; break;
+    case 1: joyDir=1; break;
+    case 2: joyDir=-1; break;
+  }
+}
 
 void loop()
 {
@@ -1332,6 +1371,7 @@ void loop()
 #endif //useAUDIO
 
 #ifdef useFACES
+  facesID=0;
   if (digitalRead(KEYBOARD_INT) == LOW) {
     Wire.requestFrom(KEYBOARD_I2C_ADDR, 1);  // request 1 byte from keyboard
     while (Wire.available()) {
@@ -1343,7 +1383,11 @@ void loop()
 #ifdef isM5Stack
 
   //Power OFF
-  if (M5.BtnA.isPressed() && M5.BtnC.isPressed()) {
+  #ifdef ARDUINO_ODROID_ESP32
+  if (M5.BtnSelect.isPressed()) {
+  #else
+  if (M5.BtnA.isPressed() && M5.BtnC.isPressed() || facesID==1) {
+  #endif
 //RR VVVVVVVVVVVVVVVVVVVVVVV
 #ifdef useGo10on //50音検索
     if (voiceDataNo != 0)
@@ -1351,29 +1395,62 @@ void loop()
     else
 #endif
 //RR ^^^^^^^^^^^^^^^^^^^^^^^ 
+      #ifndef ARDUINO_ODROID_ESP32
       M5.powerOFF();
- }
+      #endif
+    return;
+  }
+  
   //A button
-  if (M5.BtnA.wasPressed() || M5.BtnA.isPressed()) {
+  #ifdef ARDUINO_ODROID_ESP32
+  joyXY=max(M5.JOY_Y.wasAxisPressed(),M5.JOY_Y.isAxisPressed());
+  if (joyXY>0) {
+    Serial.println(joyXY);
+    setJoyDir();
+    delay(1);
+  #else
+  if (M5.BtnA.wasPressed() || M5.BtnA.isPressed() || facesID==2) {
+  #endif
+    noOpr=millis();
     pressJump++;
     doBtnAB(-1);
+    joyDir=1;
     return;
   }
 
   //C button //<--B button
-  if (M5.BtnC.wasPressed() || M5.BtnC.isPressed()) {
+  #ifdef ARDUINO_ODROID_ESP32
+  joyXY=max(M5.JOY_X.wasAxisPressed(),M5.JOY_X.isAxisPressed());
+  if( (selmode == 2 && joyXY>0) || M5.BtnA.wasPressed()) {
+    Serial.println(joyXY);
+    setJoyDir();
+  #else
+  if (M5.BtnC.wasPressed() || M5.BtnC.isPressed() || facesID==3) {
+  #endif
+    noOpr=millis();
     pressJump++;
     doBtnAB(1);
+    joyDir=1;
     return;
   }
 
   //B button //<--C button
-  if (M5.BtnB.wasPressed()) {
+  if (M5.BtnB.wasPressed() || facesID==4) {
+    noOpr=millis();
     doBtnC();
     return;
   }
 
-  if (M5.BtnA.wasReleased() || M5.BtnB.wasReleased() || M5.BtnC.wasReleased()) pressJump = 0;
+  #ifdef ARDUINO_ODROID_ESP32
+  if (M5.BtnA.wasReleased() || M5.BtnB.wasReleased() || M5.BtnMenu.wasReleased() || //M5.BtnC.wasReleased()
+      M5.BtnVolume.wasReleased() || M5.BtnSelect.wasReleased() || M5.BtnStart.wasReleased() ||
+      M5.JOY_X.wasReleased() || M5.JOY_Y.wasReleased() ) {
+  #else
+  if (M5.BtnA.wasReleased() || M5.BtnB.wasReleased() || M5.BtnC.wasReleased()) {
+  #endif
+    noOpr=millis();
+    pressJump = 0;
+  }
 
 #endif //isM5Stack
 
@@ -1382,6 +1459,20 @@ void loop()
   server.handleClient();
 #endif //useWebServer
 
+//#ifndef ARDUINO_ODROID_ESP32
+  //Auto power off
+  if (300000<millis()-noOpr) {
+    /*
+    Serial.println( "Power OFF" );
+    M5.powerOFF();
+    */
+    M5.Lcd.setBrightness(0);
+    M5.Lcd.sleep();
+    esp_sleep_enable_ext0_wakeup((gpio_num_t)BUTTON_B_PIN, LOW);
+    esp_deep_sleep_start();
+  }
+//#endif //not ARDUINO_ODROID_ESP32
+  
   delay(10);
   
 }
@@ -1431,10 +1522,10 @@ void doBtnAB(int w) { //A=-1, C=1
 //長押し if (pressJump<2) {
       if (selmode == 2) { //50音表示-->右へ
         drawCharacterPos(0);
-        characterXPos++;
- //       if (characterXPos > 11)
-       if (characterXPos > characterXMax - 1)
-         characterXPos = 0;
+        characterXPos=characterXPos+joyDir;
+ //     if (characterXPos > 11)
+        if (characterXPos > characterXMax - 1) characterXPos = 0;
+        else if(characterXPos<0) characterXPos=characterXMax - 1;
         drawCharacterPos(1);
         delay(100);   //長押し
       }
@@ -1445,17 +1536,17 @@ void doBtnAB(int w) { //A=-1, C=1
         drawSelMode();  
       }
 //長押し  }
-    return; //戻る
-     }   //RR
+      return; //戻る
+     } //RR voiceDataNo == 0
    }
 
   //Aボタンかつ50音表示の場合
   //長押し if (pressJump < 2) {
   if (selmode == 2) { //50音表示-->下へ
     drawCharacterPos(0);
-    characterYPos++;
-    if (characterYPos > 4)
-      characterYPos = 0;
+    characterYPos+=joyDir;
+    if (characterYPos > 4) characterYPos = 0;
+    else if(characterYPos<0) characterYPos=4;
     drawCharacterPos(1);
     delay(100);
     return; //戻る
@@ -1463,49 +1554,48 @@ void doBtnAB(int w) { //A=-1, C=1
 #endif //useGo10on 終わり
 
   //50音表示でなくて、Aボタンの場合
-  
   switch (selmode) {
-  case -1://QRcode
-  #ifdef isM5Stack
-    M5.Lcd.fillRect(0, posY - 60, 320, 150, 0);
-  #endif
-  #ifdef useWebServer
-    drawAPQRCode(w);
-  #endif //useWebServer
-    showQRC = false;//true; //Always false, now
-    selmode = -1;
-    return;
-    
-  case 0:
-  #ifdef useGo10on //50音検索
-    selmode = 1;
-  #else //useGo10on //50音検索
-    selmode = 5;
-  #endif //useGo10on 終わり
-    drawListVoiceID();
-    drawSelMode();
-    return;
-    
-  case 1:
-  case 5:
-  //長押し#ifndef useGo10on //50音検索
-    voiceID += selmode * -w;  
- /*
-    if (pressJump < 5) {
-      voiceID += selmode * -w;
-    } else {
-      voiceID += (pressJump / 5) * 5 * selmode * -w;
-    }
-*/
-  //長押し#else //useGo10on //50音検索
-  //長押し  if (pressJump > 1)
-  //長押し    return;
-  //長押し  voiceID++;
-  //長押し#endif //useGo10on 終わり
-    break;
-    
-  default:
-    return;
+    case -1://QRcode
+    #ifdef isM5Stack
+      M5.Lcd.fillRect(0, posY - 60, 320, 150, 0);
+    #endif
+    #ifdef useWebServer
+      drawAPQRCode(w);
+    #endif //useWebServer
+      showQRC = false; //true; //Always false, now
+      selmode = -1;
+      return;
+      
+    case 0:
+    #ifdef useGo10on //50音検索
+      selmode = 1;
+    #else //useGo10on //50音検索
+      selmode = 5;
+    #endif //useGo10on 終わり
+      drawListVoiceID();
+      drawSelMode();
+      return;
+      
+    case 1:
+    case 5:
+    //長押し#ifndef useGo10on //50音検索
+      voiceID += (selmode * -w * joyDir); //Aボタンの場合、wはマイナス  
+   /*
+      if (pressJump < 5) {
+        voiceID += selmode * -w;
+      } else {
+        voiceID += (pressJump / 5) * 5 * selmode * -w;
+      }
+  */
+    //長押し#else //useGo10on //50音検索
+    //長押し  if (pressJump > 1)
+    //長押し    return;
+    //長押し  voiceID++;
+    //長押し#endif //useGo10on 終わり
+      break;
+      
+    default:
+      return;
   }
   checkVoiceID();
   drawListVoiceID();
@@ -1630,12 +1720,14 @@ Serial.print("enableAudio="); Serial.println(enableAudio);
   return;
 }
 
+#ifndef ARDUINO_ODROID_ESP32
 //#ifdef useFACES
 
 void doFacesKey(int key_val) {
   Serial.println(key_val);
   if (key_val != 0) {
     if (key_val >= 0x30 && key_val <= 0x39) {
+      /*
       if (startkey) {
         voiceID = (voiceID + 1) * 10 + key_val - 0x30 - 1;
       } else {
@@ -1644,6 +1736,7 @@ void doFacesKey(int key_val) {
       }
       checkVoiceID();
       drawListVoiceID();
+      */
       return;
     } else {
       doTenKey(key_val);
@@ -1654,57 +1747,46 @@ void doFacesKey(int key_val) {
 
 void doTenKey(int key_val) {
   switch (key_val) {
-    case '=':
-    case 191://Select
-    case 239://A
-    case 223://B
-      doBtnC();
-      if (selmode == 0) doBtnC();
-      return;
-
     case '+':
-    case 253://Down
-      selmode = 1;
-      doBtnAB(1);
-      drawSelMode();
-      return;
-
     case '-':
-    case 254://Up
-      selmode = 1;
-      doBtnAB(-1);
-      drawSelMode();
-      return;
-
     case '*':
-    case 247://Right
-      selmode = 5;
-      doBtnAB(1);
-      drawSelMode();
-      return;
-
     case '/':
-    case 251://Left
-      selmode = 5;
-      doBtnAB(-1);
-      drawSelMode();
-      return;
-
+    case '=': break;
     case 127://Start
-      voiceID = 0;
-      drawListVoiceID();
-      startkey = false;
-      return;
-
-    default:
       break;
-  }
+      
+    case 191://Select
+      facesID=1; return;
+    
+    case 239://A
+      facesID=3; return;
+     
+    case 223://B
+      facesID=4; return;
 
+    case 253://Down
+      joyDir=1; facesID=2; return;
+
+    case 254://Up
+      joyDir=-1; facesID=2; return;
+
+    case 247://Right
+      if(selmode == 2) { joyDir=1; facesID=3; return; }
+      break;
+
+    case 251://Left
+      if(selmode == 2) { joyDir=-1; facesID=3; return; }
+      break;
+      
+    //default: return;
+  }
+  
   startkey = false;
   return;
 }
 
 //#endif //useFACES
+#endif //not ARDUINO_ODROID_ESP32
 
 #ifdef useWebServer
 
