@@ -1,25 +1,33 @@
-# M5Stack_RoVoCoMo2 (v2.0)
-ロビ１、ロビ２をWi-Fi（FlashAirを使用）またはBLE (Bluetooth Low Enagy)により無線コントロールするための**M5Stack**および**Odroid-GO**（ver2.0から対応）のプログラムです。RoVoCoMo2という名前は「Robi Voice Controller by Micono」の略で、ブラウザ版の[RoVoCoMo](http://micono.cocolog-nifty.com/blog/2017/07/rovocomo-v05-81.html)のM5Stack/Odroid-GO版をRoVoCoMo2としています。
+# M5Stack_RoVoCoMo2 (v2.1)
+ロビ１、ロビ２をWi-Fi（FlashAirを使用）またはBLE (Bluetooth Low Enagy)により無線コントロールするための**M5Stack**および**Odroid-GO**のプログラムです。RoVoCoMo2という名前は「Robi Voice Controller by Micono」の略で、ブラウザ版の[RoVoCoMo](http://micono.cocolog-nifty.com/blog/2017/07/rovocomo-v05-81.html)のM5Stack/Odroid-GO版をRoVoCoMo2としています。[LovyanLauncher](https://github.com/lovyan03/M5Stack_LovyanLauncher)に対応していて、microSDからの起動には[LovyanLauncher](https://github.com/lovyan03/M5Stack_LovyanLauncher)もインストールされている必要があります。
+
+**注意：Odroid-GO Device Menu Control (以降、OGメニュー）を使う場合（初期状態の場合）は[LovyanLauncher](https://github.com/lovyan03/M5Stack_LovyanLauncher)のインストールは必要はありません。microSDには[Skeleton file](https://wiki.odroid.com/odroid_go/make_sd_card)を使います。**
 
 どのようなプログラムなのかは、以下の像をクリックすると操作中の動画をで観ることができます（**この動画で使っているRoVoCoMo2は旧バージョンであり最新バージョンのものとは異なります**）。<br>
 [![preview](images/preview01s.jpg)](https://www.youtube.com/watch?v=HBEKJXp4zvs)
 
-###更新内容
-- Odroid-GO対応 / Faces操作不具合修正
+### 更新内容
+
+**v2.1**
+
+- fwタイプのバイナリを追加
+- Fireパーティションバイナリーを追加
+- 認識語や発話語を切り替えられるようになった
+- 十字キーの左右で５個おきに表示を切り替えられるようになった（Odroid-GOまたはfaces）
+- Volumeボタンで、音量を0,小(1),大(5)に変えられるようになった（Odroid-GO）
+
+	[v2.1最新機能動画](https://youtu.be/hLVhZwFGAmI )
+
+##### v2.1への更新方法
+
+- microSDの中に入っている古いバージョンのRoVoCoMo2.binファイルを消去またはRoVoCoMo2.2.0.binなどと名前を変更して下さい。
+- ダウンロードしたファイルの中の「microSD」フォルダの中のファイルをmicroSDにコピーします。**重複するフォルダがある場合は結合コピーでコピーしないとフォルダの中に入っている他のプログラムが消えてしまうので十分にご注意ください。**
+- 音声リストのcsvファイルが新しくなっていますので、必ずコピーして下さい。
 
 <IMG SRC=images/m5sodrgo.jpg width="400">
 
-#### 更新方法
-
-- RoVoCoMo2.binをmicroSDにコピーする
-- ver1.8以前を使っている場合
-	- ROBI1フォルダ, および,ROBI2フォルダをmicroSDにコピーする
-	- ロビ２（ロビ１兼用）を使う場合は、ROBI2フォルダの中のNinshiki.csvを、ロビ１をを使う場合は、ROBI1フォルダの中のNinshiki.csvをmicroSDのルートにコピーします。
-- Aボタン+リセットで、一旦メニュープログラムに戻ります。
-- メニュープログラムから、RoVoCoMo2を選択して起動して下さい。
-
 ## インストール
-「Clone or download」（緑色のボタン）でDownload ZIPを選び、ダウンロードし、zipを解凍して以下の手順に従ってインストールを行ってください。
+**このページ右上の方にある「Clone or download」（緑色のボタン）でDownload ZIPを選び、ダウンロードし、zipを解凍して以下の手順に従ってインストールを行ってください。**
 
 ### ① 無線対応の「ロビのココロ」を作る
 ロビのココロ (microSD) をFlashAirやBLEを使って動かすためには、それら対応のロビのココロを作成する必要があります。コントーロルの仕様は、メディアクラフトさんの仕様に合わせる形で対応しています。したがって、**ここでの作業は、主にメディアクラフトさんのページを参考に行って下さい。**
@@ -31,6 +39,7 @@
 - **リモート対応**をチェックすると**FlashAir**によるリモート接続に対応できます。
 - **Bluetooth**にチェックするとQ-boやM5Stack、および、Odroid-GOでリモート操作ができます。
 - Bluetooth開始コードは、**RoVoCoMo2**の場合は**「1154」**が開始コードとなります。
+- ロビ２用のココロの改善プログラムを使っている場合は、[ロビ設定ファイルエディタ２](http://www.kumagaya.or.jp/~mcc/robox/RBEdit2/index.html)の最新のものを使って下さい。
 
 ロビ設定ファイルエディタ２はWindows版のアプリケーションです。マックをお使いでSTARTUP.BINを作れない場合は、miconoまでご連絡下さい。なお、マック版の同様のプログラムを作成を計画していますが、いつごろになるか未定です。
 
@@ -49,64 +58,93 @@
  
  
 ### ② M5Stack（またはOdroid-GO）のmicroSDに入れるもの
-1. 同梱のファイルの中にmicroSDフォルダの中に、M5StackとOdroid-GOというフォルダがあります。その中に入っているファイルやフォルダをmicroSDにコピーをして下さい。ちなみに、**RoVoCoMo2.bin**というファイルがRoVoCoMo2のプログラムになります。また、jpgやjsonのフォルダに入っているファイルはメニュプログラムが使うデータです。もし、コピー先のmicroSDの中に、既にjpgフォルダや、jsonフォルダがある場合は、それぞれの中に入っているファイルをコピー先のjpgフォルダや、jsonフォルダの中にコピーするようにして下さい。
-2. さらに、**ロビ１**をコントロールする場合は、**ROBI1フォルダ**の中の**Ninshiki.csv**をコピー先のmicroSDのルートにコピーして下さい。 **ロビ２（＆ロビ１**）をコントロールする場合は、**ROBI2フォルダ**の中の**Ninshiki.csv**をコピー先のmicroSDのルートにコピーして下さい。同じファイル名なので、どちらかの**Ninshiki.csv**を使うことになります。
-3. **ロビ１のココロ**をお持ちの方は、M5Stack（またはOdroid-GO）に入れるmicroSDにvoiceフォルダを作成して、ロビのココロの中のvoiceフォルダの中の**Ninchikiフォルダ**をmicroSDに作ったvoiceフォルダの中にコピーして下さい。
-6. **ロビ２のココロ**をお持ちの方は、M5Stack（またはOdroid-GO）に入れるmicroSDにvoiceフォルダを作成して、ロビ２のココロの中のvoiceフォルダの中の**NFフォルダ**をmicroSDに作ったvoiceフォルダの中にコピーして下さい。なお、ロビ１もお持ちの方は、**NinshikiフォルダとNFフォルダと両方入れても**問題ありません。
-2. 次に、RoVoCoMo2が使っている**日本語フォント**（**FONT.BIN**, **FONTLCD.BIN**)をmicroSDに入れます。これらのファイルをまだ入れてない場合は、ブラウザで、[Tamakichi/Arduino-KanjiFont-Library-SD](https://git.io/fjYst)を開いて下さい。
-3. 「**Clone or download**」から**Download ZIP**を選び、ダウンロードされたzipファイルを解凍します。
-4. zipファイルの中に**fontbinフォルダ**があり、その中に、**FONT.BIN**, **FONTLCD.BIN**というファイルがあるので、これら２つのファイルをmicroSDにコピーして下さい。
-5. これでmicroSDの作成は終了です。このmicroSDをM5Stack（またはOdroid-GO）に挿して下さい。
+1. ダウンロードしたファイルの中にある「microSD」フォルダの中のファイルをすべてmicroSDにコピーします。**重複するフォルダがある場合は結合コピーでコピーしないとフォルダの中に入っている他のプログラムが消えてしまわないように、ご注意ください。**
+2. 次に、RoVoCoMo2が使っている**日本語フォント**（**FONT.BIN**, **FONTLCD.BIN**)を以下の手順でmicroSDに入れます。
+	- [Tamakichi/Arduino-KanjiFont-Library-SD](https://git.io/fjYst)を開いて下さい。
+	- 「**Clone or download**」から**Download ZIP**を選び、ダウンロードされたzipファイルを解凍します。
+	- **fontbinフォルダ**の中の、**FONT.BIN**と**FONTLCD.BIN**の２つのファイルをmicroSDにコピーして下さい。
 
 
 ### ③ USBドライバーをインストールする
 M5Stackをコンピュータと繋いで、プログラムの転送など通信するためには、Silicon LabsのUSBDriverをインストールする必要があります。もしまだインストールしてなければ
 [シリアル接続の確立方法](https://docs.m5stack.com/#/ja/related_documents/establish_serial_connection)
-のサイトを参考にしてインストールして下さい。
+のサイトを参考にしてインストールして下さい。**Odroid-GOメニューを使う場合は必ずしもドライバーのインストールをする必要はありません**
 
 > なお、Macの場合、インストールしただけではセキュリティが通ってないので、インストール後、環境設定のセキュリティとプライバシーの一般で、インストールしたドライバーの許可をして下さい。
 > 
 ![セキュリティ](images/kyoka.jpg)
 
+### ④ M5Burner_Micで、LovyanLauncherをインストールする
+**Odroid-GOメニューを使う場合はこの操作を行ってはいけません!!!**
 
-### ④ M5Burner_Micで、M5Stack（またはOdroid-GO）にSD-Menuをインストールする
-"M5Burner\_Mic"というプログラムでSD-MenuをM5Stack（またはOdroid-GO）にインストールします。すでにSD-MenuまたはLovyanLauncherをインストールしてある場合はこのステップは必要ありません。
+"[M5Burner_Mic](https://github.com/micutil/M5Burner_Mic)"というプログラムで[LovyanLauncher](https://github.com/lovyan03/M5Stack_LovyanLauncher)をM5StackまたはOdroid-GOにインストールする方法を説明します。
 
-1. [M5Burner_Mic](https://github.com/micutil/M5Burner_Mic) のページから「Download [here](http://micutil.com/download/M5Burner_Mic.zip)」の所でM5Burner\_Micをダウンロードし、解凍して下さい。（M5Burner\_Micフォルダはお好みの場所に入れて下さい。）
-2. M5Stack（またはOdroid-GO）に付いてきたUSBケーブルでパソコンとを繋げて下さい。
+1. [M5Burner_Mic](https://github.com/micutil/M5Burner_Mic) のページから「Download [here](http://micutil.com/download/M5Burner_Mic.zip)」の所でM5Burner\_Micをダウンロードし、解凍して下さい。M5Burner\_Micフォルダはお好みの場所に入れて下さい（**フルパスに日本語名を含まない場所に置くのが無難です**）。
+2. M5Stackにインストールする場合：[LovyanLauncher firmware](https://github.com/lovyan03/LovyanLauncher-firmware)のページから「Clone or download」のボタンでダウンロードし解凍。LovyanLauncher-firmware-masterフォルダをM5Burner\_Micのフォルダの中にあるfirmwaresフォルダにコピーして下さい。
+3. Odroid-GOにインストールする場合：[Odroid-GO版のLovyanLauncher](https://github.com/lovyan03/M5Stack_LovyanLauncher/blob/master/LovyanLauncher/build_odroid_go/LovyanLauncher.bin)のページの「Download」ボタンをクリックするとダウンロードできます。ダウンロードしたLovyanLauncher.binは、M5Burner\_Mic起動後、M5Burner\_Micのウインドウに**ドラッグ＆ドロップ**して下さい。
+2. USBケーブルでパソコンとM5StackまたはOdroid-GOを繋げて下さい。
 3. M5Burner\_Micをダブルクリックして起動します。
-4. USBシリアルポートをM5Stack（またはOdroid-GO）のポートに設定します。
+4. USBシリアルポートをM5StackまたはOdroid-GOのポートに設定します。
  - Macの場合はポートに名前がつくので「**SLAB_USBtoUART**」という名前のポートを選んで下さい。
  - Windowsの場合は、**COM3**とか、COM4とかの名前になっています。ひとつしか表示されてなかったら、それがM5Stackのポートでしょう。もしいくつか表示されているようだったら、コントロールパネルから、デバイスマネージャーのポートをみて番号を確認して下さい。例えば以下の図の場合だと**COM4**であるということになります。<br>![ポート番号](images/portnum.jpg)
-5. 「Priset」のポップアップメニューでM5StackまたはOdroid-GO用の「**SD-Menu**」の最新版を選択します。
+5. 「Priset」のポップアップメニューで「**LovyanLauncher......**」を選択します。
 6. 「**Start**」ボタンをクリックすると、プログラムの転送が開始します。
-7. プログラムの転送が終わるとM5Stackがリセットされ、インストールした**SD-Menu**が起動します。
-8. M5Stack（またはOdroid-GO）のCボタン（右）を何回か押して、RoVoCoMo2を選択し、Bボタン（中央）のボタンを押すと、RoVoCoMo2が起動します。操作方法は後で説明します。
-9. microSDにmenu.binが入ってない場合は、M5Burner_Micのfirmwaresフォルダの中のtobozoフォルダの中にM5StackまたはOdroid-GO用の**menu.bin**があるので、それをmicroSDにコピーして下さい。
-9. 再度、メニューを表示する場合は、Aボタン（左）を押しながらリセットボタン（左上側面）を押すとSD-Menuが起動します。
+7. プログラムの転送が終わるとM5StackまたはOdroid-GOは、リセットされ、インストールした**LovyanLauncher**が起動します。
 
+#### LovyanLauncherの操作
+	1. メニューの**SD-Updater**を選択して"OK"
+	2. microSDに入ってるプログラムの一覧が表示されます。
+	3. 目的のプログラムを探して選択し、"OK"
+	4. 起動する場合は、"Execute"
 
-##操作方法
+#### ODROID-GO Device Firmware Menu Controlsの操作
 
-### 基本操作 (左から、Aボタン、Bボタン、Cボタン)
+	1. 電源スイッチ OFF
+	2. Bボタンを押したまま, 電源スイッチ On
+	3. メニューが表示されたらBボタンを離す
 
-- 索引(Cボタン)を押して、50音表示にします。
-- M5Stackでは、右矢印(Cボタン)と下矢印(Aボタン)を押して、動作させたい認識語の頭文字を選択します。Odroid/Facesでは、十字キーの上下左右を押して、動作させたい認識語の頭文字を選択できます。例えば「ゲームしよう」を選びたい場合は「げ」を選択して、「選択」(Bボタン)を押します。
-- 認識語の一覧が黄色く表示されているので、M5Stackでは、下矢印(Aボタン)で動作させる音声を選択します。Odroid/Facesでは、十字キーの上下で動作させる音声を選択します。
-- 「選択」(Bボタン)で、それに対応する信号が送信され、ロビが動作を開始します。
+	アプリケーションF/Wの起動
+	- A ボタン: アプリケーションF/Wを選択
+	- B ボタン: キャンセル
+	- Start ボタン: アプリケーションF/Wの書き込み
+
+## RoVoCoMo2の操作方法
+
+### 基本操作
+**M5Stackの場合：** 左から、Aボタン、Bボタン、Cボタン
+
+- **A+Bボタン**で音声を選択します（ロビ２認識語→ロビ語音声１→ロビ語音声２→ロビ語音声３→ロビ語音声４→ロビ１認識語→）。
+- **索引(Cボタン)**を押して、50音表示にします。
+- **右矢印(Cボタン)または下矢印(Aボタン)**を押して、動作させたい認識語の頭文字を選択します。例えば「ゲームしよう」を選びたい場合は「げ」を選択して、**「選択」(Bボタン)**を押します。
+- 認識語の一覧が黄色く表示されているので、**下矢印(Aボタン)**で動作させる音声を選択します。
+- **「選択」(Bボタン)**で、それに対応する信号が送信され、ロビが動作を開始します。
+- ロビ２のみの音声はIDが**赤色**で表示されます。
+
+**Odroid-GO / Facesの場合**
+
+- **Selectボタン**で音声を選択します（ロビ２認識語→ロビ語音声１→ロビ語音声２→ロビ語音声３→ロビ語音声４→ロビ１認識語→）。
+- **索引(Aボタン)**を押して、50音表示にします。
+- **十字キーの上下左右**を押して、動作させたい認識語の頭文字を選択します。例えば「ゲームしよう」を選びたい場合は「げ」を選択して、**「選択」(Bボタン)**を押します。
+- 認識語の一覧が黄色く表示されているので、**十字キーの上下左右**で動作させる音声を選択します。左右ボタンは音声リストは５つずつ進みます。
+- **「選択」(Bボタン)**で、それに対応する信号が送信され、ロビが動作を開始します。
+- ロビ２のみの音声はIDが**赤色**で表示されます。
 
 ### 電源・リセット
-- AボタンとCボタンを同時に押してると電源を切ることができます。（M5Stack版）
-- 左側面の赤いボタンがリセットボタンです。（M5Stack版）
+**M5Stackの場合：**
+- **AボタンとCボタン**を同時に押してると電源を切ることができます。
+- 左側面の赤いボタンがリセットボタンです。
 - Aボタンを押したままリセットをすると、メニュープログラムを起動させられます。
-- Bボタンを押したまま起動すると、FlashAir機能がオフになります。
-- Cボタンを押したまま起動する（M5Stack版）、Selectボタンを押したまま起動する（Odroid/Faces）と、音声再生がオフになります。
-- 約5分程度時間が経つとスリープします。Bボタンで復帰します。
+- **Bボタン**を押したまま起動すると、FlashAir機能がオフになります。
+- **Cボタン**を押したまま起動すると、音声再生がオフになります。
+- 約5分程度時間が経つとスリープします。**Bボタン**で復帰します。
+
+**Odroid-GO / Facesの場合**
+- ODメニューを起動する場合は、**Bボタン**を押したままスイッチオンにするとメニュー画面になります。
 
 ### 特別な操作(ロビライドの操作)
 - ロビ2でロビライドモードに入る時は「ロビライドで遊ぼう」です。その操作後に、ロビ2のロビライド用の認識語一覧が表示されます。
 - ロビ1でロビライドモードに入る時は「遊ぼう」です。その操作後に、ロビ1のロビライド用の認識語一覧が表示されます。終了する「だいじょうぶ」も再生/リモート送信されます。
-- ロビライドモードに入ると、M5Stackでは、上矢印(Cボタン)、下矢印(Aボタン)で、Odroid/Facesでは、十字キーの上下で、認識語を選択できるようになります。
+- ロビライドモードに入ると、M5Stackでは、**上矢印(Cボタン)または下矢印(Aボタン)**で、Odroid/Facesでは、**十字キーの上下**で、認識語を選択できるようになります。
 
 ### その他
 - FlashAirのSSIDとパスワードは、SSIDがflashair_xxxxxで、パスワードが12345678の場合に自動的に接続できるようになっています(xxxxxの部分は任意の文字)。買った状態のSSIDとパスワードはこの設定になっています。
@@ -116,6 +154,7 @@ M5Stackをコンピュータと繋いで、プログラムの転送など通信�
 - 「ゲームしよう」はロビ２のガイドの間違い(おそらく「ゲームする」との)で音声認識語ファイルも提供されていません。ロビ２に「ゲームしよう」と言っても反応しません(ゲームすると誤認識した反応する事もあります)。この認識語はロビ１でも重要な認識語ではなのでロビ２用のNinshiki.csvから除外してあります。
 
 ## 履歴
+	ver 2.1: 2019/ 9/28 : 音声リスト切替機能ほか
 	ver 2.0: 2019/ 5/17 : Odroid-GO対応 / Faces操作不具合修正
 	ver 1.9: 2019/ 4/30 : FlashAirを使った場合の落ちる不具合を修正
 	                      Ninshikiフォルダが入ってない場合、音声がでない不具合を修正
