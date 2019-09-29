@@ -10,6 +10,7 @@ String host = "flashair";
 
 String BOUNDARY_STR="========================";
 byte upViceData[]={ 0xFE,0xFF,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0 }; 
+byte upVice2Data[]={ 0xFF,0xFF,0,0, 0x08,0,0x19,0, 0xFF,0xFF,0,0, 0,0,0,0 };  //CRAFT 2.1
 unsigned long totalseconds;
 String upTimestring="";
 
@@ -29,10 +30,24 @@ void writeFile(fs::FS &fs, const char * path, byte * message){
     file.close();
 }
 
-void saveRemoteLog(int id) {
-  upViceData[2]=id&0xFF;
-  upViceData[3]=(id>>8)&0xFF;
-  writeFile(SD,"/REMOTE.LOG",upViceData);
+//void saveRemoteLog(int id) {
+// CRAFT 2.1 vvvvvvvvvvvvvvvvvvvvvv
+void saveRemoteLog(int id, int voice_time) {
+  if (id > 512)
+  {
+//    Serial.print("id=");Serial.print(id);Serial.print(",time=");Serial.println(voice_time);
+    upVice2Data[2]=(id - 512)&0xFF;
+    upVice2Data[3]=((id - 512)>>8)&0xFF;
+    upVice2Data[4]=voice_time * 2;
+    writeFile(SD,"/REMOTE.LOG",upVice2Data);
+  }
+  else
+  {
+// CRAFT 2.1 ^^^^^^^^^^^^^^^^^^^^^^
+    upViceData[2]=id&0xFF;
+    upViceData[3]=(id>>8)&0xFF;
+    writeFile(SD,"/REMOTE.LOG",upViceData);
+  } //CRAFT 2.1
 }
 
 void createTimeStamp() {
@@ -47,11 +62,13 @@ void createTimeStamp() {
   upTimestring = "0x" + String(year + month + date,16) + String(hours + minites + seconds,16);
 }
 
-void sendRemoteLog(int id) {
-  
+//void sendRemoteLog(int id) {
+void sendRemoteLog(int id, int voice_time) {  //CRAFT 2.1
+
   //Remote.log保存
-  saveRemoteLog(id);
-  
+//  saveRemoteLog(id);
+  saveRemoteLog(id, voice_time);  //CRAFT 2.1
+    
   //タイムスタンプ
   //createTimeStamp();
   

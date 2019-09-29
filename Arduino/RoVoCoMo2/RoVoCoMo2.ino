@@ -4,6 +4,7 @@
    
    https://github.com/micutil/M5Stack_RoVoCoMo2
 
+   ver 2.1: 2019/ 9/28 : 音声リスト切替機能ほか
    ver 2.0: 2019/ 5/17 : Odroid-GOに対応 / Faces操作の不具合を修正
    ver 1.9: 2019/ 4/30 : FlashAirを使った場合の落ちる不具合を修正
                          Ninshikiフォルダが入ってない場合音声がでない不具合を修正
@@ -191,7 +192,11 @@ bool enableFlashAir=false;
   AudioOutputI2S *aout;
   
   //Initial speaker volue level
+  #ifdef ARDUINO_ODROID_ESP32
+  float spkvol = 0.5;
+  #else
   float spkvol = 0.1;
+  #endif
   bool voicePlay = false;
   bool waitVoice = false;
   bool enableAudio = false;
@@ -229,6 +234,7 @@ int fileid = 0x482; //Ninshikigo (0x482)
 int target = fileid;
 int tgtid = 0;
 int voiceID = 22; //ゼロベース
+int voice_time = 0; //CRAFT 2.1
 
 //Send data
 int dataType = 0;
@@ -241,7 +247,10 @@ unsigned long rapx[] = {100, 100}; //{3000,27000};//
 
 //認識語Voiceデータ名
 int voiceMax; //登録数
-#define MAX_ID 340
+//#define MAX_ID 340
+//#define MAX_ID 512      //CRAFT 2.1
+//#define MAX_ID 360      //CRAFT 2.1
+#define MAX_ID 340        //CRAFT 2.11
 #define MAX_ORDER 32
 #define MAX_NEXT 16
 
@@ -300,8 +309,11 @@ int characterID[60];
 int voiceOrder0[MAX_ID];
 
 String characterData[] = {
-  "あかさたなはまやらがざだ", "いきしちにひみいりぎじで", "うくすつぬふもゆるぐずど", "えけせてねへめえろげぜば", "おこそとのほもよわごぞぼ"
+//  "あかさたなはまやらがざだ", "いきしちにひみいりぎじで", "うくすつぬふもゆるぐずど", "えけせてねへめえろげぜば", "おこそとのほもよわごぞぼ"
+//  "あかさたなはまやがざだ認１", "いきしちにひみよぎじで認２", "うくすつぬふむりぐずど声１", "えけせてねへめろげぜば声２", "おこそとのほもわごぞぼ声３" //CRAFT 2.1
+    "あかさたなはまやらがざで", "いきしちにひみいりぎじど", "うくすつぬふむゆるぐずば", "えけせてねへめえろげぜび", "おこそとのほもよわごだぼ"  //CRAFT 2.1
 };
+int voiceType = 1;  //CRAFT 2.1
 int characterXMax = 12;
 /*
 int characterID[] = {  
@@ -515,6 +527,9 @@ void drawSelMode() {
   if (showQRC) selmode = -1;
   //M5.Lcd.fillRect(0, smpY, 320, 20, 0);
 
+  int v=(int)(spkvol*10);
+  String s="Vol:"+String(v);
+
 #ifdef useJPFONT
   SDfonts.open(); // フォントのオープン
   switch (selmode) {
@@ -526,24 +541,55 @@ void drawSelMode() {
       
     case 1:
      #ifdef useGo10on //50音検索
+#ifdef ARDUINO_ODROID_ESP32
+      //fontDump(smpX, smpY, " ＋ ", fntsz, TFT_WHITE, false);
+      fontDump(smpX, smpY, (char*)s.c_str(), fntsz, TFT_WHITE, false);
+#else     
       fontDump(smpX, smpY, " ↓ ", fntsz, TFT_WHITE, false);
 //RR vvvvvvvvvvvvvvvvvv     
       if (voiceDataNo != 0)
          fontDump(smpX + smpS * 2, smpY, "　↑ ", fntsz, TFT_WHITE, false);
      else
-//RR ^^^^^^^^^^^^^^^^^     
+//RR ^^^^^^^^^^^^^^^^^
+#endif
+       #ifdef ARDUINO_ODROID_ESP32
+        fontDump(smpX + smpS * 2 + 10, smpY, "索引(A)", fntsz, TFT_CYAN, false);
+       #else
         fontDump(smpX + smpS * 2, smpY, "索引", fntsz, TFT_CYAN, false);
+       #endif
      #else //not useGo10on
       fontDump(smpX, smpY, " - ", fntsz, TFT_WHITE, false);
       fontDump(smpX + smpS * 2, smpY, " + ", fntsz, TFT_WHITE, false);
-     #endif //useGo10on 終わり     
+     #endif //useGo10on 終わり 
+     
+     #ifdef ARDUINO_ODROID_ESP32
+      fontDump(smpX + smpS +35, smpY, "選択(B)", fntsz, TFT_YELLOW, false);
+     #else
       fontDump(smpX + smpS, smpY, "選択", fntsz, TFT_YELLOW, false);
+     #endif
+      
       break;
       
     case 2: //useGo10on //50音検索
+#ifdef ARDUINO_ODROID_ESP32
+      //fontDump(smpX, smpY, "　＋ ", fntsz, TFT_WHITE, false);
+      fontDump(smpX, smpY, (char*)s.c_str(), fntsz, TFT_WHITE, false);
+#else
       fontDump(smpX, smpY, "　↓ ", fntsz, TFT_WHITE, false);
+#endif
+
+      
+     #ifdef ARDUINO_ODROID_ESP32
+      fontDump(smpX + smpS +35, smpY, "選択(B)", fntsz, TFT_YELLOW, false);
+     #else
       fontDump(smpX + smpS, smpY, "選択", fntsz, TFT_YELLOW, false);
+     #endif
+      
+#ifdef ARDUINO_ODROID_ESP32      
+      fontDump(smpX + smpS * 2 +10, smpY, "　　    ", fntsz, TFT_WHITE, false);
+#else
       fontDump(smpX + smpS * 2, smpY, "→　", fntsz, TFT_WHITE, false);
+#endif
       break;
     
     case 5:
@@ -567,23 +613,51 @@ void drawSelMode() {
 /***********************************************************
    Draw id and voice
 */
-int posXa = 20;
+//int posXa = 20;
+int posXa = 6;    //CRAFT 2.1
 int posXb = 65;
 int posY = 125;
 
 void drawVoiceID(int y, int id) {
-  char idstr[4];
-  
-  sprintf(idstr, "%03d", ninshikiID[voiceOrder[id]]);  
+//  char idstr[4];
+  char idstr[5];    //CRAFT 2.1
+  int fntcol = TFT_WHITE;
+//CRAFT 2.1 vvvvvvvvvvvvvvvvvvvv
+  int no = ninshikiID[voiceOrder[id]];
+  if ((voiceType > 2) || ((voiceType == 2) && (voiceFile[voiceOrder[id]] == 0)))
+    fntcol = TFT_RED;
+/* 
+  if (no >= 1000)
+  {
+//   fntcol = TFT_RED;
+#ifdef useJPFONT
+   fontDump(4, y + 4, "1", 14, fntcol, false);
+#endif
+   no -= 1000;
+  }
+*/ 
+//  sprintf(idstr, "%03d", ninshikiID[voiceOrder[id]]); 
+  if (no >= 1000)
+    sprintf(idstr, "1%03d", no - 1000);
+  else  
+    sprintf(idstr, " %03d", no);
 //  sprintf(idstr, "%03d", (voiceOrder[id] + 1) & 0x1FF);
+//CRAFT 2.1 ^^^^^^^^^^^^^^^^^^^
 
   //String idstr=String(id);
 
 #ifdef useJPFONT
-  int fntcol = TFT_BLUE;
-  if (id == voiceID) fntcol = TFT_YELLOW;
+//CRAFT 2.1 vvvvvvvvvvvvvvvvvvvvvvvvvvv  
+//  int fntcol = TFT_BLUE;
+//  if (id == voiceID) fntcol = TFT_YELLOW;
   //M5.Lcd.fillRect(0, y, 320, 30, 0);
-  fontDump(posXa, y + 4, (char*)idstr, 14, TFT_WHITE, false);
+//  fontDump(posXa, y + 4, (char*)idstr, 14, TFT_WHITE, false);
+  fontDump(posXa, y + 4, (char*)idstr, 14, fntcol, false);
+  if (id == voiceID)
+    fntcol = TFT_YELLOW;
+  else
+    fntcol = TFT_BLUE;
+//CRAFT 2.1 ^^^^^^^^^^^^^^^^^^^^^^^^^^^  
   int xp = fontDump(posXb, y, (char*)voiceData[voiceOrder[id]].c_str(), 24, fntcol, false);
   M5.Lcd.fillRect(xp, y, 320, 30, 0);
 #endif //useJPFONT
@@ -647,6 +721,9 @@ void drawCharacterTable() {
   if (showQRC) return;
   int i, y;
   SDfonts.open(); // フォントのオープン
+  if (voiceType > 2)  //CRAFT 2.1
+    M5.Lcd.fillRect(0, posY - 60, 12, 150, 0); //CRAFT 2.1
+
   for (i = 0; i < 5; i++) {
     y = posY + 30 * i - 60;
     //int xp = fontDump(0, y, (char*) characterData[i].c_str(), 24, TFT_BLUE, false);
@@ -736,6 +813,56 @@ void changeVoiceData(int no)
 */  
   voiceDataNo = no;
 }
+// CRAFT 2.1 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+void changevoiceType()
+{
+   char* file_name;
+   char* type_str;
+
+  if (selmode == 2)
+    M5.Lcd.fillRect(0, posY - 60, 320, 150, 0);
+        
+   switch(voiceType)
+   {
+         case 0:
+            file_name = "/Ninshiki1.csv";
+            type_str = "【ロビ１】";
+            enableAudio = true;
+            break;
+         case 1:
+            file_name = "/Ninshiki2.csv";
+            type_str = "【ロビ２】";
+            enableAudio = true;
+            break;
+         case 2:
+            file_name = "/voice1.csv";
+            type_str = "【音声１】";
+            enableAudio = false;
+            break;
+         case 3:
+            file_name = "/voice2.csv";
+            type_str = "【音声２】";
+            enableAudio = false;
+            break;
+         case 4:
+            file_name = "/voice3.csv";
+            type_str = "【音声３】";
+            enableAudio = false;
+            break;
+         case 5:
+            file_name = "/voice4.csv";
+            type_str = "【音声４】";
+            enableAudio = false;
+            break;
+   }
+   readVoiceData(SD,file_name);
+   changeVoiceData(0);
+   voiceID = 0;
+   //fontDump(260, 43, type_str, 16, TFT_WHITE);
+   fontDump(10, 42, type_str, 20, TFT_WHITE); //mic2.1 //68
+   
+}
+// CRAFT 2.1 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 #endif //useGo10on 終わり
 
 /*
@@ -780,7 +907,8 @@ void readVoiceData(fs::FS &fs, const char * path) {
   int i = 0;
   int j = 0;
   voiceMax = 0;
-  
+  memset(characterID, 0, sizeof(characterID));   //CRAFT 2.1
+  memset(maxOrder, 0, sizeof(maxOrder));   //CRAFT 2.11
   while (file.read() != 10);  //ヘッダー読み飛ばし
 /*  
   while ((v = file.read()) != 10)  //ヘッダー情報読込
@@ -806,6 +934,7 @@ void readVoiceData(fs::FS &fs, const char * path) {
 */
   while (file.available())
   {
+     nextData[i] = 0; //CRAFT 2.1
      v = file.read();
 
      if (v == ',')
@@ -815,6 +944,7 @@ void readVoiceData(fs::FS &fs, const char * path) {
        {
           if (j > 0)
             voiceOrder0[voiceMax++] = atoi(buf);
+          if (voiceMax >= MAX_ID) break; //CRAFT 2.11
        }
        else if (col == 1)
        {
@@ -866,14 +996,16 @@ void readVoiceData(fs::FS &fs, const char * path) {
      }
      else if (v > 32)
      {
-       buf[j++] = (char) v;
+       if (j < 30)  //CRAFT 2.1
+         buf[j++] = (char) v;
      }
   }
   file.close();
   
   maxOrder[0] = voiceMax;
   v = voiceMax - 1;
-  for (i = 59; i > 0; i--)
+//  for (i = 59; i > 0; i--)
+  for (i = 54; i > 0; i--)  //CRAFT 2.1
   {
     if (characterID[i] == 0)
       characterID[i]  = v;
@@ -1055,7 +1187,8 @@ void sendRemoteLogTask(void *args) {
     for (;;) {
       if(tgtid>0 && waitVoice == false) {
         Serial.print("ID:#");Serial.println(tgtid);
-        sendRemoteLog(tgtid);
+//        sendRemoteLog(tgtid);
+        sendRemoteLog(tgtid, voice_time); //CRAFT 2.1
         tgtid=0;
       }
       delay(50);
@@ -1225,9 +1358,18 @@ void setup()
   Serial.println(F("sdfonts liblary"));
 
   //Robi2 BLE Voice Controller
-  fontDump(20, 5, "RoVoCoMo2", 24, TFT_CYAN);
-  fontDump(20, 30, "BLE & FlashAir", 16);
-  fontDump(20, 47, "by Micono v2.0", 12, TFT_GREEN);
+  fontDump(20, 2, "RoVoCoMo2", 24, TFT_CYAN);
+  //fontDump(20, 30, "BLE & FlashAir", 16);
+  //fontDump(20, 47, "by Micono v2.1", 12, TFT_GREEN);
+  //fontDump(260, 43, "ロビ２", 16, TFT_WHITE);      //CRAFT 2.1
+  fontDump(20, 26, "by Micono v2.1", 12, TFT_GREEN);
+  //fontDump(20, 46, "モード:", 12, TFT_WHITE);
+  changevoiceType();//fontDump(60, 43, "ロビ２", 16, TFT_WHITE);
+  #ifdef ARDUINO_ODROID_ESP32
+  fontDump(120, 46, "(変更:SEL)", 12, TFT_WHITE);
+  #else
+  fontDump(120, 46, "(変更:A+B)", 12, TFT_WHITE);
+  #endif
 #endif //useJPFONT
 
 #endif //isM5Stack
@@ -1255,16 +1397,19 @@ void setup()
 #endif //useWebServer
 
 #ifdef useGo10on //50音検索
-
+/* CRAFT 2.11
    #ifdef useSPIFFS
-      readVoiceData(qbFSD,"/Ninshiki.csv");
+//      readVoiceData(qbFSD,"/Ninshiki.csv");
+      readVoiceData(qbFSD,"/Ninshiki2.csv");    //CRAFT 2.1
       readCharacterData(qbFSD,"/Character.csv");
    #else
-      readVoiceData(SD,"/Ninshiki.csv");
+//      readVoiceData(SD,"/Ninshiki.csv");
+      readVoiceData(SD,"/Ninshiki2.csv");       //CRAFT 2.1
       readCharacterData(SD,"/Character.csv");
-    #endif   
+    #endif
+CRAFT 2.11 */
 //  Serial.print("voiceFolder=");Serial.print(voiceFolder);Serial.print("openingVoice=");Serial.println(openingVoice);
-  changeVoiceData(0);
+  //changeVoiceData(0); //mic 2.1
 
 #else //not useGo10on
   //Default voice order
@@ -1385,8 +1530,19 @@ void loop()
   //Power OFF
   #ifdef ARDUINO_ODROID_ESP32
   if (M5.BtnSelect.isPressed()) {
+//CRAFT 2.1 vvvvvvvvvvvvvvvv
+#ifdef useGo10on //50音検索
+    voiceType++;
+    if (voiceType > 5)
+      voiceType = 0;
+    changevoiceType();
+    selmode = 1;
+    drawListVoiceID();
+    drawSelMode();
+#endif
+//CRAFT 2.1 ^^^^^^^^^^^^^^^^
   #else
-  if (M5.BtnA.isPressed() && M5.BtnC.isPressed() || facesID==1) {
+  if (M5.BtnA.isPressed() && M5.BtnC.isPressed()) {
   #endif
 //RR VVVVVVVVVVVVVVVVVVVVVVV
 #ifdef useGo10on //50音検索
@@ -1400,7 +1556,25 @@ void loop()
       #endif
     return;
   }
-  
+
+//CRAFT 2.1 vvvvvvvvvvvvvvvv
+#ifdef useGo10on //50音検索
+  #ifndef ARDUINO_ODROID_ESP32
+  if (M5.BtnA.isPressed() && M5.BtnB.isPressed() || facesID==1) {
+#ifdef useGo10on //50音検索
+    voiceType++;
+    if (voiceType > 5)
+      voiceType = 0;
+    changevoiceType();
+    selmode = 1;
+    drawListVoiceID();
+    drawSelMode();
+    return;
+#endif    
+  }
+  #endif
+#endif
+//CRAFT 2.1 vvvvvvvvvvvvvvvv
   //A button
   #ifdef ARDUINO_ODROID_ESP32
   joyXY=max(M5.JOY_Y.wasAxisPressed(),M5.JOY_Y.isAxisPressed());
@@ -1421,11 +1595,12 @@ void loop()
   //C button //<--B button
   #ifdef ARDUINO_ODROID_ESP32
   joyXY=max(M5.JOY_X.wasAxisPressed(),M5.JOY_X.isAxisPressed());
-  if( (selmode == 2 && joyXY>0) || M5.BtnA.wasPressed()) {
+//if( (selmode == 2 && joyXY>0) || M5.BtnA.wasPressed()) {
+  if( (joyXY>0) || M5.BtnA.wasPressed()) {  //CRAFT 2.1
     Serial.println(joyXY);
     setJoyDir();
   #else
-  if (M5.BtnC.wasPressed() || M5.BtnC.isPressed() || facesID==3) {
+  if (M5.BtnC.wasPressed() || M5.BtnC.isPressed() || facesID==3 || facesID==5 ) {
   #endif
     noOpr=millis();
     pressJump++;
@@ -1441,6 +1616,17 @@ void loop()
     return;
   }
 
+  #ifdef ARDUINO_ODROID_ESP32
+  if(M5.BtnVolume.wasReleased()) {
+    noOpr=millis();
+    if(spkvol<0.05) spkvol=0.1;
+    else if(spkvol<0.3) spkvol=0.5;
+    else if(spkvol<0.6) spkvol=0.0;
+    drawSelMode();
+    return;
+  }
+  #endif
+  
   #ifdef ARDUINO_ODROID_ESP32
   if (M5.BtnA.wasReleased() || M5.BtnB.wasReleased() || M5.BtnMenu.wasReleased() || //M5.BtnC.wasReleased()
       M5.BtnVolume.wasReleased() || M5.BtnSelect.wasReleased() || M5.BtnStart.wasReleased() ||
@@ -1515,9 +1701,11 @@ void doBtnAC()
 void doBtnAB(int w) { //A=-1, C=1
 #ifdef useGo10on //50音検索
   if (w == 1) { //Cボタン
-//RR vvvvvvvvvvvvvvvvvvvvvvvv    
+//RR vvvvvvvvvvvvvvvvvvvvvvvv 
+#ifndef ARDUINO_ODROID_ESP32 //CRAFT 2.1
     if (voiceDataNo == 0)
     {
+#endif
 // RR ^^^^^^^^^^^^^^^^^^^^^^^    
 //長押し if (pressJump<2) {
       if (selmode == 2) { //50音表示-->右へ
@@ -1530,6 +1718,20 @@ void doBtnAB(int w) { //A=-1, C=1
         delay(100);   //長押し
       }
       else { //50音表示に変更
+//CRAFT 2.1 vvvvvvvvvvvvvvvvvvvvvv
+#ifdef ARDUINO_ODROID_ESP32
+        if (joyDir != 0)
+#else
+        if (joyDir != 0 && facesID == 5 )
+#endif
+        {
+          voiceID += joyDir * 5;
+          checkVoiceID();
+          drawListVoiceID();
+          return;
+       }
+        
+//CRAFT 2.1 ^^^^^^^^^^^^^^^^^^^^^
         drawCharacterTable();
         drawCharacterPos(1);
         selmode = 2;
@@ -1537,7 +1739,9 @@ void doBtnAB(int w) { //A=-1, C=1
       }
 //長押し  }
       return; //戻る
+#ifndef ARDUINO_ODROID_ESP32 //CRAFT 2.1     
      } //RR voiceDataNo == 0
+#endif     
    }
 
   //Aボタンかつ50音表示の場合
@@ -1635,18 +1839,28 @@ void doBtnC() { // is B button
 #else //useGo10on //50音検索の場合
       selmode = -1;
       break;
-      
-    case 2: //50音表示の時に選択ボタンを押した場合
-      if (voiceDataNo > 0)
-        changeVoiceData(0);
-      voiceID = characterID[characterXPos * 5 + characterYPos];
+   case 2: //50音表示の時に選択ボタンを押した場合
+/* CRAFT 2.11   
+// CRAFT 2.1 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+      if (characterXPos == characterXMax - 1)
+      {
+        voiceType = characterYPos;
+        changevoiceType();
+      }
+      else
+      {
+ // CRAFT 2,1 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ 
+ CRAFT 2/11 */ 
+        if (voiceDataNo > 0)
+          changeVoiceData(0);
+        voiceID = characterID[characterXPos * 5 + characterYPos];
+//CRAFT 2.11      } //CRAFT 2.1
       Serial.print("voiceID="); Serial.println(voiceID);
       selmode = 1;
       M5.Lcd.fillRect(0, posY - 60, posXb, 150, 0);
       drawListVoiceID();
       drawSelMode();
-      return;
-      
+      return; 
 #endif //useGo10on 終わり
 
     default:
@@ -1657,8 +1871,30 @@ void doBtnC() { // is B button
   if (enableAudio) waitVoice = true;
 #endif //useAUDIO
   int id = voiceOrder[voiceID];
+// CRAFT 2.1 vvvvvvvvvvvvvvvvvvvvvv
   tgtid = ninshikiID[id];
-  int idz = tgtid - 1;
+ /* 
+  int offset;
+  if (voiceType == 4)
+    offset = 1757;
+  else if (voiceType == 3)
+    offset = 1212;
+  else if (voiceType == 2)
+    offset = 512;
+  else
+    offset = 0;
+ 
+  tgtid = ninshikiID[id] + offset;
+*/
+  if (voiceType >= 2)
+  {
+    tgtid += 512;
+    voice_time = voiceFile[id];
+  }
+  else
+    voice_time = 0;
+// CRAFT 2.1 ^^^^^^^^^^^^^^^^^^^^^^  
+int idz = tgtid - 1;
 /*
  int idz= voiceOrder[voiceID];//zero base
  tgtid = idz + 1;
@@ -1746,6 +1982,8 @@ void doFacesKey(int key_val) {
 }
 
 void doTenKey(int key_val) {
+  facesID=0;
+
   switch (key_val) {
     case '+':
     case '-':
@@ -1757,25 +1995,32 @@ void doTenKey(int key_val) {
       
     case 191://Select
       facesID=1; return;
+      break;
     
     case 239://A
-      facesID=3; return;
-     
+      if(selmode != 2) { facesID=3; return; }
+      break;
+      
     case 223://B
       facesID=4; return;
-
+      break;
+      
     case 253://Down
       joyDir=1; facesID=2; return;
+      break;
 
     case 254://Up
       joyDir=-1; facesID=2; return;
+      break;
 
     case 247://Right
       if(selmode == 2) { joyDir=1; facesID=3; return; }
+      else { joyDir=1; facesID=5; return; }
       break;
 
     case 251://Left
       if(selmode == 2) { joyDir=-1; facesID=3; return; }
+      else { joyDir=-1; facesID=5; return; }
       break;
       
     //default: return;
