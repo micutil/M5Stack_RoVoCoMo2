@@ -1,4 +1,4 @@
-# M5Stack_RoVoCoMo2 (v2.1)
+# M5Stack_RoVoCoMo2 (v2.2)
 ロビ１、ロビ２をWi-Fi（FlashAirを使用）またはBLE (Bluetooth Low Enagy)により無線コントロールするための**M5Stack**および**Odroid-GO**のプログラムです。RoVoCoMo2という名前は「Robi Voice Controller by Micono」の略で、ブラウザ版の[RoVoCoMo](http://micono.cocolog-nifty.com/blog/2017/07/rovocomo-v05-81.html)のM5Stack/Odroid-GO版をRoVoCoMo2としています。[LovyanLauncher](https://github.com/lovyan03/M5Stack_LovyanLauncher)に対応していて、microSDからの起動には[LovyanLauncher](https://github.com/lovyan03/M5Stack_LovyanLauncher)もインストールされている必要があります。
 
 **注意：Odroid-GO Device Menu Control (以降、OGメニュー）を使う場合（初期状態の場合）は[LovyanLauncher](https://github.com/lovyan03/M5Stack_LovyanLauncher)のインストールは必要はありません。microSDには[Skeleton file](https://wiki.odroid.com/odroid_go/make_sd_card)を使います。**
@@ -7,6 +7,17 @@
 [![preview](images/preview01s.jpg)](https://www.youtube.com/watch?v=HBEKJXp4zvs)
 
 ### 更新内容
+
+**v2.2**
+
+- BTアドバタイズデータの修正
+- 音声リストのcsvファイルを更新
+- 認識語に対しては強制的にAudioEnableになっていたのを修正
+
+##### v2.2への更新方法
+
+- ダウンロードしたファイルの中の「microSD」フォルダの中の「音声リストのcsvファイル」が新しくなっていますので、お使いのmicroSDのルートにコピーして下さい。
+- RoBoCoMo.binは、ご利用のESP32機器に対応するものとmicroSDにコピーして下さい。M5Stack用：M5_Robibinフォルダの中、M5Stack fire用：MF_Robibinフォルダの中、Odroid GO用 (Arduino)：OG_Robibinフォルダの中、Odroid GO用 (純正FW)：odroid/firemwareフォルダの中にコピーして下さい。
 
 **v2.1**
 
@@ -154,6 +165,7 @@ M5Stackをコンピュータと繋いで、プログラムの転送など通信�
 - 「ゲームしよう」はロビ２のガイドの間違い(おそらく「ゲームする」との)で音声認識語ファイルも提供されていません。ロビ２に「ゲームしよう」と言っても反応しません(ゲームすると誤認識した反応する事もあります)。この認識語はロビ１でも重要な認識語ではなのでロビ２用のNinshiki.csvから除外してあります。
 
 ## 履歴
+	ver 2.2: 2020/ 3/22 : BTアドバタイズデータの修正,音声cvs更新,ライブラリ更新
 	ver 2.1: 2019/ 9/28 : 音声リスト切替機能ほか
 	ver 2.0: 2019/ 5/17 : Odroid-GO対応 / Faces操作不具合修正
 	ver 1.9: 2019/ 4/30 : FlashAirを使った場合の落ちる不具合を修正
