@@ -123,8 +123,8 @@ bool connectWiFi(int type) {
       case 1:
       case 2:
         Serial.println();Serial.println();
-        Serial.print("Connecting to "); M5.Lcd.print("Connecting to ");
         Serial.println(apdata[0].c_str()); M5.Lcd.println(apdata[0]);
+        Serial.print("Connecting"); M5.Lcd.print("Connecting");
         WiFi.begin(apdata[0].c_str(),apdata[1].c_str());
         
         int64_t timeout = millis() + 5000;

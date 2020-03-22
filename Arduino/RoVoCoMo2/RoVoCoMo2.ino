@@ -4,6 +4,7 @@
    
    https://github.com/micutil/M5Stack_RoVoCoMo2
 
+   ver 2.2: 2020/ 3/22 : BTアドバタイズデータの修正,音声cvs更新,ライブラリ更新
    ver 2.1: 2019/ 9/28 : 音声リスト切替機能ほか
    ver 2.0: 2019/ 5/17 : Odroid-GOに対応 / Faces操作の不具合を修正
    ver 1.9: 2019/ 4/30 : FlashAirを使った場合の落ちる不具合を修正
@@ -200,6 +201,7 @@ bool enableFlashAir=false;
   bool voicePlay = false;
   bool waitVoice = false;
   bool enableAudio = false;
+  bool existAudio = false;  //CRAFT 2.2
 
 #else
 
@@ -226,7 +228,7 @@ bool startkey = false;
 //BLE
 SimpleBLE ble;
 
-byte qboMD[19] = {0, 0, 0, 'D', 'e', 'A', 'G', 'O', 'S', 'T', 'I', 'N', 'I', ' ', 'Q', '-', 'b', 'o'};
+byte qboMD[18] = {0, 0, 0, 'D', 'e', 'A', 'G', 'O', 'S', 'T', 'I', 'N', 'I', ' ', 'Q', '-', 'b', 'o'};
 byte fileMD[5] = {0x20, 0, 0, 0, 0};
 
 int fileid = 0x482; //Ninshikigo (0x482)
@@ -386,7 +388,7 @@ int voiceOrder[300];
 void setQboIdManData()
 {
   qboMD[2] = (byte)counter;
-  ble.advertise(qboMD, 19);
+  ble.advertise(qboMD, 18);
 }
 
 //function takes String and adds manufacturer code at the beginning
@@ -620,10 +622,19 @@ int posY = 125;
 
 void drawVoiceID(int y, int id) {
 //  char idstr[4];
-  char idstr[5];    //CRAFT 2.1
+//  char idstr[5];    //CRAFT 2.1
+  char idstr[6];    //CRAFT 2.2
   int fntcol = TFT_WHITE;
 //CRAFT 2.1 vvvvvvvvvvvvvvvvvvvv
   int no = ninshikiID[voiceOrder[id]];
+ //CRAFT 2.2 vvvvvvvvvvvv
+  if (no < 0)
+  {
+    fntcol = TFT_YELLOW;
+    no += 1152;
+  }
+  else
+ // CRAFT 2.2 ^^^^^^^^^^^^^^^^^^^   
   if ((voiceType > 2) || ((voiceType == 2) && (voiceFile[voiceOrder[id]] == 0)))
     fntcol = TFT_RED;
 /* 
@@ -827,12 +838,14 @@ void changevoiceType()
          case 0:
             file_name = "/Ninshiki1.csv";
             type_str = "【ロビ１】";
-            enableAudio = true;
+//            enableAudio = true;
+            enableAudio = existAudio; //CRAFT 2.2
             break;
          case 1:
             file_name = "/Ninshiki2.csv";
             type_str = "【ロビ２】";
-            enableAudio = true;
+//            enableAudio = true;
+            enableAudio = existAudio; //CRAFT 2.2
             break;
          case 2:
             file_name = "/voice1.csv";
@@ -859,6 +872,10 @@ void changevoiceType()
    changeVoiceData(0);
    voiceID = 0;
    //fontDump(260, 43, type_str, 16, TFT_WHITE);
+//CRAFT 2.2 vvvvvvvvvvvvvvvvvvvvv
+  if (ninshikiID[0] < 0)   
+    type_str = "【Ｑｂｏ】";
+//CRAFT 2.2 ^^^^^^^^^^^^^^^^^^^^^   
    fontDump(10, 42, type_str, 20, TFT_WHITE); //mic2.1 //68
    
 }
@@ -907,8 +924,9 @@ void readVoiceData(fs::FS &fs, const char * path) {
   int i = 0;
   int j = 0;
   voiceMax = 0;
-  memset(characterID, 0, sizeof(characterID));   //CRAFT 2.1
-  memset(maxOrder, 0, sizeof(maxOrder));   //CRAFT 2.11
+  memset(characterID, 0, sizeof(characterID));      //CRAFT 2.1
+  memset(maxOrder, 0, sizeof(maxOrder));            //CRAFT 2.11
+  memset(continueOrder, 0, sizeof(continueOrder));  //CRAFT 2.2
   while (file.read() != 10);  //ヘッダー読み飛ばし
 /*  
   while ((v = file.read()) != 10)  //ヘッダー情報読込
@@ -1004,8 +1022,8 @@ void readVoiceData(fs::FS &fs, const char * path) {
   
   maxOrder[0] = voiceMax;
   v = voiceMax - 1;
-//  for (i = 59; i > 0; i--)
-  for (i = 54; i > 0; i--)  //CRAFT 2.1
+  for (i = 59; i > 0; i--)
+//CRAFT 2.2  for (i = 54; i > 0; i--)  //CRAFT 2.1
   {
     if (characterID[i] == 0)
       characterID[i]  = v;
@@ -1288,14 +1306,18 @@ void setup()
   #ifdef hasSD
   //if ((enableAudio = SD.exists("/voice/Ninshiki/NF26.wav")) == false)
   //  enableAudio = SD.exists("/voice/NF/NF26.wav");
-  enableAudio = SD.exists("/voice/Ninshiki") || SD.exists("/voice/NF");
+//  enableAudio = SD.exists("/voice/Ninshiki") || SD.exists("/voice/NF");
+  existAudio = SD.exists("/voice/Ninshiki") || SD.exists("/voice/NF");    //CRAFT 2.2
   #endif
   M5.update();
   #ifdef ARDUINO_ODROID_ESP32
-  if(M5.BtnVolume.isPressed()) enableAudio=false;
+//  if(M5.BtnVolume.isPressed()) enableAudio=false;
+  if(M5.BtnVolume.isPressed()) existAudio=false;    //CRAFT 2.2
   #else
-  if(M5.BtnC.isPressed()) enableAudio=false;
+//  if(M5.BtnC.isPressed()) enableAudio=false;
+  if(M5.BtnC.isPressed()) existAudio=false;         //CRAFT 2.2
   #endif
+  enableAudio = existAudio;   //CRAFT 2.2
 #endif
 
 #ifdef useWebServer
@@ -1360,10 +1382,11 @@ void setup()
   //Robi2 BLE Voice Controller
   fontDump(20, 2, "RoVoCoMo2", 24, TFT_CYAN);
   //fontDump(20, 30, "BLE & FlashAir", 16);
-  //fontDump(20, 47, "by Micono v2.1", 12, TFT_GREEN);
+  //fontDump(20, 47, "by Micono v2.2", 12, TFT_GREEN);
   //fontDump(260, 43, "ロビ２", 16, TFT_WHITE);      //CRAFT 2.1
-  fontDump(20, 26, "by Micono v2.1", 12, TFT_GREEN);
-  //fontDump(20, 46, "モード:", 12, TFT_WHITE);
+//  fontDump(20, 26, "by Micono v2.1", 12, TFT_GREEN);
+  fontDump(20, 26, "by Micono v2.2", 12, TFT_GREEN);
+ //fontDump(20, 46, "モード:", 12, TFT_WHITE);
   changevoiceType();//fontDump(60, 43, "ロビ２", 16, TFT_WHITE);
   #ifdef ARDUINO_ODROID_ESP32
   fontDump(120, 46, "(変更:SEL)", 12, TFT_WHITE);
@@ -1867,10 +1890,13 @@ void doBtnC() { // is B button
       return;
   }
 
+  int id = voiceOrder[voiceID]; //CRAFT 2.2
 #ifdef useAUDIO
-  if (enableAudio) waitVoice = true;
-#endif //useAUDIO
-  int id = voiceOrder[voiceID];
+//  if (enableAudio) waitVoice = true;
+  if (enableAudio && (voiceFile[id] != 0))        //CRAFT 2.2
+    waitVoice = true;
+  #endif //useAUDIO
+//  int id = voiceOrder[voiceID];
 // CRAFT 2.1 vvvvvvvvvvvvvvvvvvvvvv
   tgtid = ninshikiID[id];
  /* 
@@ -1926,7 +1952,8 @@ int idz = tgtid - 1;
 
 Serial.print("enableAudio="); Serial.println(enableAudio);
 
-  if (enableAudio) {
+//  if (enableAudio) {
+  if (enableAudio && (voiceFile[id] != 0)) {        //CRAFT 2.2
 #ifdef useMP3
     playQboSoundNum(tgtid);
 #else
